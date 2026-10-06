@@ -1,11 +1,70 @@
 [
   {
-    "name": "example",
-    "title": "TODO(author): the first document this industry must produce",
-    "for_each": "select gen_random_uuid() as id, 'Example' as name",
+    "name": "funder-report",
+    "title": "Programme report to the funder",
+    "for_each": "select id, code || ' ' || name as name from programs where status = 'active' order by code",
     "file": "name",
     "sections": [
-      { "title": "Details", "sql": "select 'replace me' as item, $1::text as record_id" }
+      {
+        "title": "The funding agreement",
+        "sql": "select p.code, p.name as programme, f.name as funder, p.contract_ref, p.outlet, to_char(p.period_start, 'YYYY-MM-DD') as period_start, to_char(p.period_end, 'YYYY-MM-DD') as period_end from programs p left join funders f on f.id = p.funder_id where p.id = $1"
+      },
+      {
+        "title": "Delivery against target, period to date",
+        "sql": "select clients_served, target_clients, sessions_delivered, target_sessions, elapsed_pct || '%' as period_gone, open_files, waitlist from v_programs where program_id = $1"
+      },
+      {
+        "title": "Who we served",
+        "sql": "select coalesce(c.cultural_identity, 'not recorded') as cultural_identity, count(distinct c.id) as clients from clients c join service_files f on f.client_id = c.id join programs p on p.id = f.program_id join sessions s on s.service_file_id = f.id where p.id = $1 and s.attendance = 'attended' and s.session_on between p.period_start and current_date group by 1 order by 2 desc"
+      },
+      {
+        "title": "Outcomes on files with a start and end score",
+        "sql": "select o.domain, count(*) as pairs, round(avg(o.pre_score), 2) as avg_pre, round(avg(o.post_score), 2) as avg_post, round(100.0 * count(*) filter (where o.change > 0) / count(*)) || '%' as improved from v_outcomes o where o.file_id in (select id from service_files where program_id = $1) group by o.domain order by o.domain"
+      },
+      {
+        "title": "Files closed this period",
+        "sql": "select f.close_reason, count(*) as files from service_files f join programs p on p.id = f.program_id where p.id = $1 and f.closed_on between p.period_start and current_date group by f.close_reason order by files desc"
+      }
+    ]
+  },
+  {
+    "name": "case-summary",
+    "title": "Case summary",
+    "for_each": "select f.id, f.ref || ' ' || c.name as name from service_files f join clients c on c.id = f.client_id where f.status <> 'waitlist' order by f.ref",
+    "file": "name",
+    "sections": [
+      {
+        "title": "The file",
+        "sql": "select ref, client, program_name as programme, worker, status, to_char(opened_on, 'YYYY-MM-DD') as opened, to_char(closed_on, 'YYYY-MM-DD') as closed, close_reason, sessions_attended, did_not_attend from v_files where file_id = $1"
+      },
+      {
+        "title": "Goals",
+        "sql": "select goal, status, progress || '%' as progress, to_char(reviewed_on, 'YYYY-MM-DD') as last_reviewed from goals where service_file_id = $1 order by ref"
+      },
+      {
+        "title": "Outcome scores",
+        "sql": "select kind, domain, measure, score, to_char(assessed_on, 'YYYY-MM-DD') as assessed from assessments where service_file_id = $1 order by assessed_on, domain"
+      },
+      {
+        "title": "Sessions",
+        "sql": "select to_char(session_on, 'YYYY-MM-DD') as date, worker, mode, attendance, minutes from v_sessions where file_id = $1 order by session_on"
+      }
+    ]
+  },
+  {
+    "name": "worker-file",
+    "title": "Worker file: checks, supervision and caseload",
+    "for_each": "select id, name from workers where status = 'active' order by name",
+    "file": "name",
+    "sections": [
+      {
+        "title": "Safety check and supervision",
+        "sql": "select name, role, safety_check, safety_check_ref, to_char(safety_check_expires_on, 'YYYY-MM-DD') as expires, check_state, to_char(last_supervision_on, 'YYYY-MM-DD') as last_supervision, supervision_state from v_team where worker_id = $1"
+      },
+      {
+        "title": "Caseload",
+        "sql": "select ref, client, program, state, sessions_attended, to_char(last_contact_on, 'YYYY-MM-DD') as last_contact from v_files where worker_id = $1 and status = 'open' order by ref"
+      }
     ]
   }
 ]

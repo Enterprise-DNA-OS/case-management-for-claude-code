@@ -2,12 +2,49 @@
   {
     "name": "week",
     "title": "This week",
-    "subtitle": "Case Management for Claude Code: what needs attention, rendered by npm run view",
+    "subtitle": "Case Management for Claude Code: what needs a decision and who is booked, rendered by npm run view",
     "sections": [
       {
-        "title": "Needs attention",
-        "note": "TODO(author): point this at the industry's attention view (overdue, stuck, quiet).",
-        "sql": "select 'replace me' as item, 'TODO(author)' as why"
+        "title": "Needs a decision",
+        "note": "Worst first. An unreported mandatory concern outranks everything.",
+        "sql": "select reason as why, label as record, client, place as who_where, days, detail from v_attention order by rank, days desc nulls last"
+      },
+      {
+        "title": "Booked in the next seven days",
+        "note": "Every booked session, by day.",
+        "sql": "select ref, to_char(session_on, 'Dy DD Mon') as day, client, worker, mode, program from v_sessions where attendance = 'booked' and session_on between current_date and current_date + 7 order by session_on, worker"
+      },
+      {
+        "title": "The waitlist",
+        "note": "Longest wait first. Every week on the list is a family without a service.",
+        "sql": "select ref as file, client, program, days_waiting, referred_by, case when consent then 'yes' else 'NO' end as consent from v_waitlist order by days_waiting desc"
+      },
+      {
+        "title": "The team",
+        "note": "Safety check and supervision state loud. EXPIRED means no sessions.",
+        "sql": "select name, role, check_state as safety_check, to_char(safety_check_expires_on, 'YYYY-MM-DD') as expires, supervision_state as supervision, open_files || '/' || caseload_cap as caseload, booked_next_7d from v_team where status = 'active' order by name"
+      }
+    ]
+  },
+  {
+    "name": "funders",
+    "title": "Funders and outcomes",
+    "subtitle": "Delivery against each funding agreement, the Data Exchange and outcome scores, rendered by npm run view",
+    "sections": [
+      {
+        "title": "Delivery against target, period to date",
+        "note": "Compare the share delivered with the share of the period gone.",
+        "sql": "select code, name as programme, funder, clients_served || '/' || coalesce(target_clients::text, '-') as clients, sessions_delivered || '/' || coalesce(target_sessions::text, '-') as sessions, elapsed_pct || '%' as time_gone, waitlist, to_char(report_due_on, 'YYYY-MM-DD') as report_due from v_programs order by code"
+      },
+      {
+        "title": "Data Exchange: not yet reported",
+        "note": "LATE means the reporting period has closed with these sessions missing.",
+        "sql": "select to_char(dex_period_end, 'YYYY-MM-DD') as period_ends, to_char(dex_due_on, 'YYYY-MM-DD') as closes, count(*) as sessions, case when bool_or(state = 'DEX LATE') then 'LATE' else 'open' end as state from v_sessions where dex and attendance = 'attended' and dex_reported_on is null group by dex_period_end, dex_due_on order by dex_period_end"
+      },
+      {
+        "title": "Outcome scores, first to last",
+        "note": "SCORE pairs per programme and domain.",
+        "sql": "select program, domain, count(*) as pairs, round(avg(pre_score), 2) as avg_pre, round(avg(post_score), 2) as avg_post, round(100.0 * count(*) filter (where change > 0) / count(*)) || '%' as improved from v_outcomes group by program, domain order by program, domain"
       }
     ]
   }

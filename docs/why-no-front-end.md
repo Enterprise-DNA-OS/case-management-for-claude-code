@@ -1,24 +1,41 @@
 # Why there is no front end
 
-Penelope is a database with a subscription. The tables underneath it are ordinary: a few entities, a few relationships, a handful of workflows you repeat every week. What you pay for is the layer on top that lets people who do not write SQL get at those tables. Screens, filters, dashboards, forms.
+Penelope is a database with a subscription. The records underneath it are ordinary: clients,
+service files, sessions, goals, outcome scores, referrals, funders. What you pay for is the
+layer on top that lets people who do not write SQL get at them. Screens, forms, the waitlist
+page, a hundred and thirty standard reports.
 
-That layer used to be the whole product, because talking to a database was hard. It is not hard any more. Open this folder in Claude Code, describe what you want, and it writes the query, runs it, and explains the answer. Ask a question the dashboard never had a chart for and you still get an answer.
+That layer used to be the whole product, because talking to a database was hard. It is not
+hard any more. Open this folder in Claude Code, describe what you want, and it runs the query
+and explains the answer. Ask a question no standard report covers and you still get an answer.
 
 ## What you gain
 
-- **Better answers.** A dashboard shows what the vendor decided to chart. Here you ask your own question, in your own words, and get it answered against your own data.
-- **No seats.** Everyone who needs to look can look. The bill does not grow with headcount.
-- **Your data in your Postgres.** Plain tables. Back them up, query them from anything, leave any time. There is no export step because there is nothing to leave.
-- **A process that matches you.** When your way of working changes, you add a command. You do not wait for a feature request to clear.
+- **Better answers.** "Which families have waited longest, and who has room this week?" is one
+  question, not two reports and a spreadsheet.
+- **No per-user licences.** The intake worker, the counsellors, the team leader and the
+  finance person can all look. The bill does not grow with headcount.
+- **Your records in your Postgres.** Plain tables. Back them up, query them from anything,
+  leave any time. No paid extraction project when you move on.
+- **Rules that match your contracts.** When a funder changes what it counts, you change a
+  query in plain language. You do not wait for a vendor release.
 
 ## What you give up
 
-- **A visual board.** Stages are a table you ask about, not cards you drag.
-- **A phone app.** It runs where Claude Code runs.
-- **A vendor help desk.** This is open source. Enterprise DNA supports the installed version for businesses that want someone to call.
+- **Forms on a screen.** Workers type or say a session note into Claude Code instead of filling
+  a form. Some teams want a form: that is a front end Enterprise DNA builds on top.
+- **A phone app and offline use.** It runs where Claude Code runs. Outreach workers without a
+  laptop need a mobile front end.
+- **Client and referrer portals.** None here. Nothing faces the public.
+- **A direct Data Exchange connection.** Penelope uploads automatically. Here a person uploads
+  the file and records it; a connection is a customisation.
+- **A vendor help desk.** This is open source. Enterprise DNA supports the installed version
+  for organisations that want someone to call.
 
 ## Who this fits
 
-Small teams who already use Claude Code, or who would rather learn to ask than learn another interface. If your team needs a screen to look at all day, keep Penelope. If you need the answers more than the screens, this is cheaper, faster and yours.
+Small and mid-sized community services organisations whose managers want answers more than
+screens, or who would rather own the record than rent it. If your whole team needs a screen
+all day, keep the screen and let us build it on a database you own.
 
 Installed and run for you: https://enterprisedna.co/omni/instead-of/penelope
